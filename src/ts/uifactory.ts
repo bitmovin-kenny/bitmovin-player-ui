@@ -1,3 +1,9 @@
+import { AudioSettingsPanelPage } from './components/audiosettings/audiosettingspanelpage';
+import { AudioFilter } from 'bitmovin-player/types/audio/API';
+import { Component } from './components/component';
+import { AudioSettingsManager } from './components/audiosettings/audiosettingsmanager';
+import { AudioSettingsPanel } from './components/audiosettings/audiosettingspanel';
+import { AudioSettingsToggleButton } from './components/audiosettings/audiomenutogglebutton';
 import { SubtitleOverlay } from './components/subtitleoverlay';
 import { SettingsPanelPage } from './components/settingspanelpage';
 import { SettingsPanelItem } from './components/settingspanelitem';
@@ -59,7 +65,7 @@ export namespace UIFactory {
     return UIFactory.buildModernCastReceiverUI(player, config);
   }
 
-  function modernUI() {
+  function modernUI(player: PlayerAPI) {
     let subtitleOverlay = new SubtitleOverlay();
 
     let mainSettingsPanelPage = new SettingsPanelPage({
@@ -76,6 +82,49 @@ export namespace UIFactory {
         mainSettingsPanelPage,
       ],
       hidden: true,
+    });
+
+    // const audioApi = player.audio;
+    const audioApi = {
+      getAllFilters: (): AudioFilter[] => {
+        return [
+          {
+            id: '0',
+            name: 'equalizer',
+            config: [
+              {
+                name: '20hz',
+                type: 'range',
+                value: { min: -20, max: +20, current: 0 },
+              },
+              {
+                name: '40hz',
+                type: 'range',
+                value: { min: -20, max: +20, current: 0 },
+              },
+            ],
+          }, {
+            id: '1',
+            name: 'bassBoost',
+            config: [{
+              name: 'bass',
+              type: 'bool',
+              value: false,
+            }],
+          },
+        ];
+      },
+    };
+    let audioSettingsComponents: AudioSettingsPanelPage[] = [];
+    if (audioApi) {
+      const availableAudioFilters = audioApi.getAllFilters();
+      audioSettingsComponents = AudioSettingsManager.getComponentsForFilters(availableAudioFilters);
+    }
+
+    let audioSettingsPanel = new AudioSettingsPanel({
+      components: audioSettingsComponents,
+      hidden: true,
+      pageTransitionAnimation: false,
     });
 
     let subtitleSettingsPanelPage = new SubtitleSettingsPanelPage({
@@ -100,6 +149,7 @@ export namespace UIFactory {
     let controlBar = new ControlBar({
       components: [
         settingsPanel,
+        audioSettingsPanel,
         new Container({
           components: [
             new PlaybackTimeLabel({ timeLabelMode: PlaybackTimeLabelMode.CurrentTime, hideInLivePlayback: true }),
@@ -118,6 +168,7 @@ export namespace UIFactory {
             new AirPlayToggleButton(),
             new CastToggleButton(),
             new VRToggleButton(),
+            new AudioSettingsToggleButton( {settingsPanel: audioSettingsPanel, hidden: false}),
             new SettingsToggleButton({ settingsPanel: settingsPanel }),
             new FullscreenToggleButton(),
           ],
@@ -332,7 +383,7 @@ export namespace UIFactory {
           && context.documentWidth < smallScreenSwitchWidth;
       },
     }, {
-      ui: modernUI(),
+      ui: modernUI(player),
       condition: (context: UIConditionContext) => {
         return !context.isAd && !context.adRequiresUi;
       },
