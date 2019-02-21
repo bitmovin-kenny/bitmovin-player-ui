@@ -1,10 +1,10 @@
-import { AudioFilter, AudioFilterConfig } from 'bitmovin-player/types/audio/API';
+import { AudioFilter, AudioFilterConfig, AudioFilterRange } from 'bitmovin-player/types/audio/API';
 import { SettingsPanelItem } from '../settingspanelitem';
 import { SeekBar, SeekBarConfig } from './../seekbar';
 import { SettingsPanelPage } from './../settingspanelpage';
 import { ToggleButton } from './../togglebutton';
-import { PlayerAPI } from 'bitmovin-player';
 import { UIInstanceManager } from '../../uimanager';
+import { PlayerAPI } from 'bitmovin-player';
 
 export class AudioSettingsPanelPage extends SettingsPanelPage {
   private audioFilter: AudioFilter;
@@ -16,7 +16,7 @@ export class AudioSettingsPanelPage extends SettingsPanelPage {
         this.addComponent(new SettingsPanelItem(conf.name, new ToggleButton({})));
       }
       else if (conf.type === 'range') {
-        this.addComponent(new SettingsPanelItem(conf.name, new AudioFilterSlider(conf.value as Range, this.audioFilter, conf)));
+        this.addComponent(new SettingsPanelItem(conf.name, new AudioFilterSlider(conf.value as AudioFilterRange, this.audioFilter, conf)));
       }
       else {
         throw 'Unknown filter config type: ' + conf.type;
@@ -25,26 +25,20 @@ export class AudioSettingsPanelPage extends SettingsPanelPage {
   }
 }
 
-interface Range {
-  min: number;
-  max: number;
-}
-
 export class AudioFilterSlider extends SeekBar {
 
-  private totalRange: number;
+  private range: AudioFilterRange;
   private filter: AudioFilter;
   private filterConfig: AudioFilterConfig;
 
-  constructor(range: Range, filter: AudioFilter, filterConfig: AudioFilterConfig, config: SeekBarConfig = {}) {
+  constructor(range: AudioFilterRange, filter: AudioFilter, filterConfig: AudioFilterConfig, config: SeekBarConfig = {}) {
     super(config);
 
     this.config = this.mergeConfig(config, <SeekBarConfig>{
-      cssClass: 'ui-volumeslider',
-      hideIfVolumeControlProhibited: true,
+      cssClass: 'ui-volumeslider ui-audio-filter',
     }, this.config);
 
-    this.totalRange = range.max - range.min;
+    this.range = range;
     this.filter = filter;
     this.filterConfig = filterConfig;
   }
@@ -52,8 +46,12 @@ export class AudioFilterSlider extends SeekBar {
   configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
     super.configure(player, uimanager, false);
 
+    const totalRange = this.range.max - this.range.min;
+    this.setPlaybackPosition((this.range.current / totalRange) * 100);
+
     this.onSeeked.subscribe((sender, percentage) => {
-      (this.filterConfig.value as any).current = this.totalRange * (percentage / 100);
+      (this.filterConfig.value as any).current = totalRange * (percentage / 100);
+      player.audio.updateFilter(this.filter);
     });
 
     player.on(player.exports.PlayerEvent.PlayerResized, () => {

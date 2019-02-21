@@ -1,6 +1,5 @@
+import { AudioFilter, AudioFilterConfigType } from 'bitmovin-player/types/audio/API';
 import { AudioSettingsPanelPage } from './components/audiosettings/audiosettingspanelpage';
-import { AudioFilter } from 'bitmovin-player/types/audio/API';
-import { Component } from './components/component';
 import { AudioSettingsManager } from './components/audiosettings/audiosettingsmanager';
 import { AudioSettingsPanel } from './components/audiosettings/audiosettingspanel';
 import { AudioSettingsToggleButton } from './components/audiosettings/audiomenutogglebutton';
@@ -94,13 +93,13 @@ export namespace UIFactory {
             config: [
               {
                 name: '20hz',
-                type: 'range',
-                value: { min: -20, max: +20, current: 0 },
+                type: 'range' as any,
+                value: { min: -20, max: +20, current: 0, unit: 'db' },
               },
               {
                 name: '40hz',
-                type: 'range',
-                value: { min: -20, max: +20, current: 0 },
+                type: 'range' as any,
+                value: { min: -20, max: +20, current: 0, unit: 'db' },
               },
             ],
           }, {
@@ -108,23 +107,23 @@ export namespace UIFactory {
             name: 'bassBoost',
             config: [{
               name: 'bass',
-              type: 'bool',
-              value: false,
+              type: 'range' as any,
+              value: { min: -20, max: +20, current: 0, unit: 'db' },
             }],
           },
         ];
       },
     };
-    let audioSettingsComponents: AudioSettingsPanelPage[] = [];
+    let audioSettingsPages: AudioSettingsPanelPage[] = [];
     if (audioApi) {
       const availableAudioFilters = audioApi.getAllFilters();
-      audioSettingsComponents = AudioSettingsManager.getComponentsForFilters(availableAudioFilters);
+      audioSettingsPages = AudioSettingsManager.getComponentsForFilters(availableAudioFilters);
     }
 
     let audioSettingsPanel = new AudioSettingsPanel({
-      components: audioSettingsComponents,
+      components: audioSettingsPages,
       hidden: true,
-      pageTransitionAnimation: false,
+      pageTransitionAnimation: true,
     });
 
     let subtitleSettingsPanelPage = new SubtitleSettingsPanelPage({
