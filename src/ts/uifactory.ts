@@ -81,38 +81,7 @@ export namespace UIFactory {
       hidden: true,
     });
 
-    // const audioApi = player.audio;
-    const audioApi = {
-      getAllFilters: (): AudioFilter[] => {
-        return [
-          {
-            id: '0',
-            name: 'equalizer',
-            config: [
-              {
-                name: '20hz',
-                type: 'range' as any,
-                value: { min: -20, max: +20, current: 0, unit: 'db' },
-              },
-              {
-                name: '40hz',
-                type: 'range' as any,
-                value: { min: -20, max: +20, current: 0, unit: 'db' },
-              },
-            ],
-          }, {
-            id: '1',
-            name: 'bassBoost',
-            config: [{
-              name: 'bass',
-              type: 'range' as any,
-              value: { min: -20, max: +20, current: 0, unit: 'db' },
-            }],
-          },
-        ];
-      },
-    };
-    const availableAudioFilters = audioApi.getAllFilters();
+    const availableAudioFilters = player.audio.getAllFilters();
     let audioSettingsPanel = new AudioSettingsOverviewPage(availableAudioFilters);
 
     let subtitleSettingsPanelPage = new SubtitleSettingsPanelPage({
