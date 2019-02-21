@@ -1,7 +1,5 @@
-import { AudioFilter, AudioFilterConfigType } from 'bitmovin-player/types/audio/API';
-import { AudioSettingsPanelPage } from './components/audiosettings/audiosettingspanelpage';
-import { AudioSettingsManager } from './components/audiosettings/audiosettingsmanager';
-import { AudioSettingsPanel } from './components/audiosettings/audiosettingspanel';
+import { AudioFilter } from 'bitmovin-player/types/audio/API';
+import { AudioSettingsOverviewPage } from './components/audiosettings/audiosettingspanelpage';
 import { AudioSettingsToggleButton } from './components/audiosettings/audiomenutogglebutton';
 import { SubtitleOverlay } from './components/subtitleoverlay';
 import { SettingsPanelPage } from './components/settingspanelpage';
@@ -114,17 +112,8 @@ export namespace UIFactory {
         ];
       },
     };
-    let audioSettingsPages: AudioSettingsPanelPage[] = [];
-    if (audioApi) {
-      const availableAudioFilters = audioApi.getAllFilters();
-      audioSettingsPages = AudioSettingsManager.getComponentsForFilters(availableAudioFilters);
-    }
-
-    let audioSettingsPanel = new AudioSettingsPanel({
-      components: audioSettingsPages,
-      hidden: true,
-      pageTransitionAnimation: true,
-    });
+    const availableAudioFilters = audioApi.getAllFilters();
+    let audioSettingsPanel = new AudioSettingsOverviewPage(availableAudioFilters);
 
     let subtitleSettingsPanelPage = new SubtitleSettingsPanelPage({
       settingsPanel: settingsPanel,
