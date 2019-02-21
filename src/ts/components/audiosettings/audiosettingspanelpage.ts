@@ -1,19 +1,17 @@
-import { Spacer } from './../spacer';
-import { SettingsPanelPageBackButton } from './../settingspanelpagebackbutton';
-import { ListSelectorConfig } from './../listselector';
-import { SelectBox } from './../selectbox';
-import { SubtitleSettingsLabel } from './../subtitlesettings/subtitlesettingslabel';
-import { SettingsPanelPageNavigatorButton } from './../settingspanelpagenavigatorbutton';
-import { SettingsPanelPageOpenButton } from './../settingspanelpageopenbutton';
-import { AudioFilter, AudioFilterConfig, AudioFilterRange } from 'bitmovin-player/types/audio/API';
-import { SettingsPanelItem } from '../settingspanelitem';
-import { SeekBar, SeekBarConfig } from './../seekbar';
-import { SettingsPanelPage } from './../settingspanelpage';
-import { ToggleButton } from './../togglebutton';
-import { UIInstanceManager } from '../../uimanager';
 import { PlayerAPI } from 'bitmovin-player';
+import { AudioFilter, AudioFilterConfig, AudioFilterRange } from 'bitmovin-player/types/audio/API';
+import { UIInstanceManager } from '../../uimanager';
 import { SettingsPanel } from '../settingspanel';
-import { SubtitleSelectBox } from '../subtitleselectbox';
+import { SettingsPanelItem } from '../settingspanelitem';
+import { ListSelectorConfig } from './../listselector';
+import { SeekBar, SeekBarConfig } from './../seekbar';
+import { SelectBox } from './../selectbox';
+import { SettingsPanelPage } from './../settingspanelpage';
+import { SettingsPanelPageBackButton } from './../settingspanelpagebackbutton';
+import { SettingsPanelPageOpenButton } from './../settingspanelpageopenbutton';
+import { Spacer } from './../spacer';
+import { SubtitleSettingsLabel } from './../subtitlesettings/subtitlesettingslabel';
+import { ToggleButton } from './../togglebutton';
 
 export class AudioSettingsOverviewPage extends SettingsPanel {
 
@@ -61,6 +59,8 @@ export class AudioFilterEnableBox extends SelectBox {
     this.addItem('on', 'Enabled');
     this.addItem('off', 'Disabled');
 
+    this.selectItem('off');
+
     this.onItemSelected.subscribe((_, key: string) => {
       this.handleItemSelection(player, key);
     });
@@ -68,6 +68,11 @@ export class AudioFilterEnableBox extends SelectBox {
 
   private handleItemSelection(player: PlayerAPI, key: string) {
     if (key === 'on') {
+      if (!this.audioFilter.id) {
+        // TODO: last index instead of 0
+        const update = player.audio.addFilter(this.audioFilter, 0);
+        this.audioFilter.id = update.id;
+      }
       player.audio.activateFilter(this.audioFilter);
     } else {
       player.audio.deactivateFilter(this.audioFilter);
@@ -127,8 +132,12 @@ export class AudioFilterSlider extends SeekBar {
     this.setPlaybackPosition((this.range.current / totalRange) * 100);
 
     this.onSeeked.subscribe((sender, percentage) => {
-      (this.filterConfig.value as any).current = totalRange * (percentage / 100);
-      player.audio.updateFilter(this.filter);
+      const range: AudioFilterRange = this.filterConfig.value as AudioFilterRange;
+      range.current = range.min + (totalRange * (percentage / 100));
+      // only update when it has been added
+      if (this.filter.id) {
+        player.audio.updateFilter(this.filter);
+      }
     });
 
     player.on(player.exports.PlayerEvent.PlayerResized, () => {
