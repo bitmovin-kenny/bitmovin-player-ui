@@ -164,16 +164,25 @@ export class AudioFilterSlider extends SeekBar {
     super.configure(player, uimanager, false);
 
     const totalRange = this.range.max - this.range.min;
-    this.setPlaybackPosition((this.range.current / totalRange) * 100);
 
-    this.onSeeked.subscribe((sender, percentage) => {
+    const updateFilterForPosition = (percentage: number) => {
       const range: AudioFilterRange = this.filterConfig.value as AudioFilterRange;
       range.current = range.min + (totalRange * (percentage / 100));
+      this.setPlaybackPosition(percentage);
       // only update when it has been added
       if (this.filter.id) {
         player.audio.updateFilter(this.filter);
       }
+    };
+
+    this.onSeeked.subscribe((_, percentage) => {
+      updateFilterForPosition(percentage);
     });
+    this.onSeekPreview.subscribeRateLimited((_, args) => {
+      if (args.scrubbing) {
+        updateFilterForPosition(args.position);
+      }
+    }, 50);
 
     player.on(player.exports.PlayerEvent.PlayerResized, () => {
       this.refreshPlaybackPosition();
@@ -190,5 +199,13 @@ export class AudioFilterSlider extends SeekBar {
     uimanager.onComponentHide.subscribe(() => {
       this.refreshPlaybackPosition();
     });
+  }
+
+  refreshPlaybackPosition() {
+    // update from the filter value before calling super
+    const totalRange = this.range.max - this.range.min;
+    const percentage = ((this.range.current - this.range.min) / totalRange) * 100;
+    this.setPlaybackPosition(percentage);
+    super.refreshPlaybackPosition();
   }
 }
