@@ -132,7 +132,7 @@ export class ReverbSelectBox extends SelectBox {
 
     this.onItemSelected.subscribe((_, key: string) => {
       if (!this.filter.id) {
-        this.filter = player.audio.addFilter(this.filter, 0);
+        this.filter = player.audio.addFilter(this.filter);
       }
 
       (this.filterConfig.value as AudioFilterList).current = key;
@@ -193,7 +193,6 @@ export class AudioFilterSlider extends SeekBar {
   }
 
   refreshPlaybackPosition() {
-    console.warn('refreshPlaybackPosition', this.seekBar.width());
     const totalRange = this.range.max - this.range.min;
     const percentage = ((this.range.current - this.range.min) / totalRange) * 100;
     this.setPlaybackPosition(percentage);
