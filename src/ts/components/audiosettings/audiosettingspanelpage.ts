@@ -1,4 +1,4 @@
-import { PlayerAPI } from 'bitmovin-player';
+import { PlayerAPI, PlayerEvent } from 'bitmovin-player';
 import { AudioFilter, AudioFilterConfig, AudioFilterList, AudioFilterRange } from 'bitmovin-player/types/audio/API';
 import { UIInstanceManager } from '../../uimanager';
 import { SettingsPanel } from '../settingspanel';
@@ -12,17 +12,24 @@ import { SettingsPanelPageOpenButton } from './../settingspanelpageopenbutton';
 import { Spacer } from './../spacer';
 import { SubtitleSettingsLabel } from './../subtitlesettings/subtitlesettingslabel';
 import { ToggleButton } from './../togglebutton';
-import { ListBox } from '../listbox';
 
 let presetSelectBox: ReverbSelectBox = null;
 
 export class AudioSettingsOverviewPage extends SettingsPanel {
 
-  constructor(availableFilters: AudioFilter[]) {
+  constructor(player: PlayerAPI) {
     super({
       hidden: true,
     });
 
+    if (player.audio) {
+      this.addComponents(player.audio.getAllFilters());
+    } else {
+      player.on(PlayerEvent.AudioApiAvailable, () => this.addComponents(player.audio.getAllFilters()));
+    }
+  }
+
+  private addComponents(availableFilters: AudioFilter[]): void {
     const mainPage = new SettingsPanelPage({
       // cssClass: 'audio-settings',
     });

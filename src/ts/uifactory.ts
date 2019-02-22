@@ -81,8 +81,7 @@ export namespace UIFactory {
       hidden: true,
     });
 
-    const availableAudioFilters = player.audio.getAllFilters();
-    let audioSettingsPanel = new AudioSettingsOverviewPage(availableAudioFilters);
+    let audioSettingsPanel = new AudioSettingsOverviewPage(player);
 
     let subtitleSettingsPanelPage = new SubtitleSettingsPanelPage({
       settingsPanel: settingsPanel,
