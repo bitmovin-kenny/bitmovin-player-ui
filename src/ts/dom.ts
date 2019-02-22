@@ -353,8 +353,13 @@ export class DOM {
    * @returns {number} the width of the first element
    */
   width(): number {
-    // TODO check if this is the same as jQuery's width() (probably not)
-    return this.elements[0].offsetWidth;
+    // if an element is hidden, it's width is 0, so we take the first width != 0 from the first parent
+    // this was an issue inside of sub-menus which don't show when their parent-menu was opened
+    let elem = this.elements[0];
+    while (elem && elem.offsetWidth === 0 && elem.parentElement) {
+      elem = elem.parentElement;
+    }
+    return elem ? elem.offsetWidth : 0;
   }
 
   /**
