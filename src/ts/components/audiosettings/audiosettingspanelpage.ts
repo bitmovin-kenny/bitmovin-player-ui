@@ -70,13 +70,13 @@ export class AudioFilterEnableBox extends SelectBox {
   private handleItemSelection(player: PlayerAPI, key: string) {
     if (key === 'on') {
       if (!this.audioFilter.id) {
-        // TODO: last index instead of 0
-        const update = player.audio.addFilter(this.audioFilter, 0);
+        const update = player.audio.addFilter(this.audioFilter);
         this.audioFilter.id = update.id;
       }
       player.audio.activateFilter(this.audioFilter);
     } else {
-      player.audio.deactivateFilter(this.audioFilter);
+      player.audio.removeFilter(this.audioFilter);
+      this.audioFilter.id = null;
     }
   }
 }
