@@ -14,6 +14,8 @@ import { SubtitleSettingsLabel } from './../subtitlesettings/subtitlesettingslab
 import { ToggleButton } from './../togglebutton';
 import { ListBox } from '../listbox';
 
+let presetSelectBox: ReverbSelectBox = null;
+
 export class AudioSettingsOverviewPage extends SettingsPanel {
 
   constructor(availableFilters: AudioFilter[]) {
@@ -121,6 +123,10 @@ export class ReverbSelectBox extends SelectBox {
 
     this.filter = filter;
     this.filterConfig = config;
+
+    if (this.filterConfig.name === 'Presets') {
+      presetSelectBox = this;
+    }
   }
 
   configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
@@ -168,6 +174,16 @@ export class AudioFilterSlider extends SeekBar {
     const updateFilterForPosition = (percentage: number) => {
       const range: AudioFilterRange = this.filterConfig.value as AudioFilterRange;
       range.current = range.min + (totalRange * (percentage / 100));
+
+      const presetConfig: AudioFilterConfig = this.filter.config.find((filterConfig: AudioFilterConfig) => {
+        return filterConfig.type === 'list' && filterConfig.name === 'Presets';
+      });
+
+      if (presetConfig) {
+        (presetConfig.value as AudioFilterList).current = 'Custom';
+        presetSelectBox.selectItem('Custom');
+      }
+
       this.setPlaybackPosition(percentage);
       // only update when it has been added
       if (this.filter.id) {
