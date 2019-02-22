@@ -187,25 +187,15 @@ export class AudioFilterSlider extends SeekBar {
     player.on(player.exports.PlayerEvent.PlayerResized, () => {
       this.refreshPlaybackPosition();
     });
-    uimanager.onConfigured.subscribe(() => {
-      this.refreshPlaybackPosition();
-    });
     uimanager.getConfig().events.onUpdated.subscribe(() => {
-      this.refreshPlaybackPosition();
-    });
-    uimanager.onComponentShow.subscribe(() => {
-      this.refreshPlaybackPosition();
-    });
-    uimanager.onComponentHide.subscribe(() => {
       this.refreshPlaybackPosition();
     });
   }
 
   refreshPlaybackPosition() {
-    // update from the filter value before calling super
+    console.warn('refreshPlaybackPosition', this.seekBar.width());
     const totalRange = this.range.max - this.range.min;
     const percentage = ((this.range.current - this.range.min) / totalRange) * 100;
     this.setPlaybackPosition(percentage);
-    super.refreshPlaybackPosition();
   }
 }
