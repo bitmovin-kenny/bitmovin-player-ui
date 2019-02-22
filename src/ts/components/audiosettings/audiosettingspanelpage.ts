@@ -1,5 +1,5 @@
 import { PlayerAPI } from 'bitmovin-player';
-import { AudioFilter, AudioFilterConfig, AudioFilterRange } from 'bitmovin-player/types/audio/API';
+import { AudioFilter, AudioFilterConfig, AudioFilterList, AudioFilterRange } from 'bitmovin-player/types/audio/API';
 import { UIInstanceManager } from '../../uimanager';
 import { SettingsPanel } from '../settingspanel';
 import { SettingsPanelItem } from '../settingspanelitem';
@@ -12,6 +12,7 @@ import { SettingsPanelPageOpenButton } from './../settingspanelpageopenbutton';
 import { Spacer } from './../spacer';
 import { SubtitleSettingsLabel } from './../subtitlesettings/subtitlesettingslabel';
 import { ToggleButton } from './../togglebutton';
+import { ListBox } from '../listbox';
 
 export class AudioSettingsOverviewPage extends SettingsPanel {
 
@@ -93,6 +94,9 @@ export class AudioSettingsPanelPage extends SettingsPanelPage {
       else if (conf.type === 'range') {
         this.addComponent(new SettingsPanelItem(conf.name, new AudioFilterSlider(conf.value as AudioFilterRange, this.audioFilter, conf)));
       }
+      else if (conf.type === 'list') {
+        this.addComponent(new SettingsPanelItem(conf.name, new ReverbSelectBox(filter, conf)));
+      }
       else {
         throw 'Unknown filter config type: ' + conf.type;
       }
@@ -104,6 +108,37 @@ export class AudioSettingsPanelPage extends SettingsPanelPage {
     });
 
     this.addComponent(new SettingsPanelItem(backButton, new Spacer()));
+  }
+}
+
+export class ReverbSelectBox extends SelectBox {
+
+  private filter: AudioFilter;
+  private filterConfig: AudioFilterConfig;
+
+  constructor(filter: AudioFilter, config: AudioFilterConfig) {
+    super({});
+
+    this.filter = filter;
+    this.filterConfig = config;
+  }
+
+  configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
+    super.configure(player, uimanager);
+
+    (this.filterConfig.value as AudioFilterList).list.forEach((impulseResponseName: string) => {
+      this.addItem(impulseResponseName, impulseResponseName);
+    });
+
+    this.onItemSelected.subscribe((_, key: string) => {
+      if (!this.filter.id) {
+        this.filter = player.audio.addFilter(this.filter, 0);
+      }
+
+      (this.filterConfig.value as AudioFilterList).current = key;
+
+      player.audio.updateFilter(this.filter);
+    });
   }
 }
 
